@@ -17,7 +17,7 @@ import java.net.UnknownHostException;
  * Created by Sumit Anantwar on 7/11/16.
  *
  */
-public class AsyncDownloader extends AsyncTask<Void, Integer, RetryMode>
+class AsyncDownloader extends AsyncTask<Void, Integer, RetryMode>
 {
     private static final String LOG_TAG = AsyncDownloader.class.getSimpleName();
 
@@ -33,7 +33,7 @@ public class AsyncDownloader extends AsyncTask<Void, Integer, RetryMode>
      * @param contentSize : (long) Size of the already downloaded content.
      * @param callback : (DownloadCallback)
      */
-    public AsyncDownloader(URL url, String localFilePath, long contentSize, DownloadCallback callback)
+    AsyncDownloader(URL url, String localFilePath, long contentSize, DownloadCallback callback)
     {
         targetURL = url;
         destinationPath = localFilePath;
