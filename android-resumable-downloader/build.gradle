@@ -29,3 +29,30 @@ dependencies {
     compile 'com.android.support:appcompat-v7:25.1.1'
     testCompile 'junit:junit:4.12'
 }
+
+ext {
+    bintrayRepo = 'maven'
+    bintrayName = 'android-resumable-downloader'
+
+    publishedGroupId = 'com.sumitanantwar'
+    libraryName = 'android-resumable-downloader'
+    artifact = 'android-resumable-downloader'
+
+    libraryDescription = 'Standard Android View extended with XML Font property'
+
+    siteUrl = 'https://github.com/sumit-anantwar/AndroidResumableDownloader'
+    gitUrl = 'https://github.com/sumit-anantwar/AndroidResumableDownloader.git'
+
+    libraryVersion = '0.0.1'
+
+    developerId = 'sumit-anantwar'
+    developerName = 'Sumit Anantwar'
+    developerEmail = 'develop@sumitanantwar.com'
+
+    licenseName = 'MIT License'
+    licenseUrl = 'https://opensource.org/licenses/MIT'
+    allLicenses = ["MIT"]
+}
+
+apply from: 'install.gradle'
+apply from: 'bintray.gradle'
