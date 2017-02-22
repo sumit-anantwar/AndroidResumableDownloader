@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
 
                 String baseUrl = "http://staticfiles.popguide.me/";
                 String extn = ".tgz";
-                String baseDestination = getApplicationContext().getFilesDir() + File.separator;
+                String baseDestination = getApplicationContext().getFilesDir() + File.separator + "Packages" + File.separator;
 
                 String[] files = {"it", "ja", "ko", "pl", "pt", "ru", "en"};
 

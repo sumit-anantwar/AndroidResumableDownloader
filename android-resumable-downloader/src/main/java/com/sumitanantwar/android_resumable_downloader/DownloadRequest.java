@@ -72,6 +72,7 @@ public class DownloadRequest
                     {
                         //Log.i(LOG_TAG, "Download Completed");
 
+                        // Copy the files from Cache to the final destination
                         try {
 
                             for (Processable processable : processables) {
@@ -104,6 +105,7 @@ public class DownloadRequest
 
                             // Download Completed, trigger onDownloadComplete on the callback
                             callback.onDownloadComplete();
+                            return; // Deliberate return, to avoid executing any other following code
                         }
                         catch (IOException e) {
 
