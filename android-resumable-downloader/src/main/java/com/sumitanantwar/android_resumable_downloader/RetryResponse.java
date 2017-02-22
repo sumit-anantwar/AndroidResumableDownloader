@@ -1,10 +1,12 @@
 package com.sumitanantwar.android_resumable_downloader;
 
+import java.util.List;
+
 /**
  * Created by Sumit Anantwar on 7/14/16.
  */
 public interface RetryResponse
 {
-    void needsRetry(long downloadedContentSize);
+    void needsRetry(List<Processable> processables);
     void retryNotNeeded(RetryMode retryMode);
 }

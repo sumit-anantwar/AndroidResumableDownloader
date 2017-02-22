@@ -10,9 +10,12 @@ import android.widget.Toast;
 
 import com.sumitanantwar.android_resumable_downloader.DownloadCallback;
 import com.sumitanantwar.android_resumable_downloader.DownloadRequest;
+import com.sumitanantwar.android_resumable_downloader.Downloadable;
 import com.sumitanantwar.android_resumable_downloader.RetryMode;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.OnClick;
@@ -33,12 +36,30 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                String url = "http://staticfiles.popguide.me/de.tgz";
-                String destination = getApplicationContext().getFilesDir() + File.separator + "sample.tgz";
+                String baseUrl = "http://staticfiles.popguide.me/";
+                String extn = ".tgz";
+                String baseDestination = getApplicationContext().getFilesDir() + File.separator;
 
+                String[] files = {"it", "ja", "ko", "pl", "pt", "ru", "en"};
 
-                DownloadRequest request = new DownloadRequest();
-                request.downloadURLtoFile(url, destination, new DownloadCallback() {
+                List<Downloadable> downloadables = new ArrayList<Downloadable>();
+                for (String fn : files) {
+
+                    String url = baseUrl + fn + extn;
+                    String destn = baseDestination + fn + extn;
+
+                    Downloadable d = new Downloadable(url, destn);
+                    downloadables.add(d);
+                }
+
+                DownloadRequest request = new DownloadRequest(context);
+                request.download(downloadables, new DownloadCallback() {
+                    @Override
+                    public void onComplete(Downloadable downloadable) {
+
+                        Log.i(LOG_TAG, "Downloaded : " + downloadable.getTargetUrl() + " - to : " + downloadable.getDestinationPath());
+                    }
+
                     @Override
                     public void onDownloadComplete() {
 
@@ -54,7 +75,9 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onDownloadFailure(RetryMode retryMode) {
 
-                        Toast.makeText(context, "Download Failed", Toast.LENGTH_LONG).show();
+                        String msg = "Download Failed " + retryMode.name();
+                        Log.e(LOG_TAG, msg);
+                        Toast.makeText(context, msg, Toast.LENGTH_LONG).show();
                     }
                 });
             }

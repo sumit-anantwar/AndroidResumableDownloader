@@ -3,13 +3,12 @@ package com.sumitanantwar.android_resumable_downloader;
 import java.util.List;
 
 /**
- * Created by Sumit Anantwar on 7/13/16.
+ * Created by Sumit Anantwar on 2/21/17.
  */
-public interface DownloadCallback
-{
-    void onComplete(Downloadable downloadable);
-    void onDownloadComplete();
+
+public interface AsyncDownloaderCallback {
+
+    void onDownloadComplete(List<Processable> processables);
     void onDownloadProgress(long completedBytes, long totalBytes);
     void onDownloadFailure(RetryMode retryMode);
-
 }

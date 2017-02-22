@@ -1,6 +1,7 @@
 package com.sumitanantwar.android_resumable_downloader;
 
 import java.net.URL;
+import java.security.MessageDigest;
 
 /**
  * Created by Sumit Anantwar on 2/8/17.
@@ -8,8 +9,16 @@ import java.net.URL;
 
 public class Processable extends Downloadable {
 
-    private long mDownloadedContentSize;
-    private long mTotalContentSize;
+    private String cacheFilPath;
+    private long downloadedContentSize;
+    private long totalContentSize;
+    private boolean hostFound;
+
+
+    public Processable(Downloadable downloadable)
+    {
+        this(downloadable.getTargetUrl(), downloadable.getDestinationPath());
+    }
 
     public Processable(String url, String destinationPath) {
 
@@ -21,21 +30,40 @@ public class Processable extends Downloadable {
         super(url, destinationPath);
     }
 
-
-
     public long getDownloadedContentSize() {
-        return mDownloadedContentSize;
+        return downloadedContentSize;
     }
 
-    public void setmDownloadedContentSize(long downloadedContentSize) {
-        this.mDownloadedContentSize = downloadedContentSize;
+    public void setDownloadedContentSize(long downloadedContentSize) {
+        this.downloadedContentSize = downloadedContentSize;
     }
 
     public long getTotalContentSize() {
-        return mTotalContentSize;
+        return totalContentSize;
     }
 
     public void setTotalContentSize(long totalContentSize) {
-        this.mTotalContentSize = totalContentSize;
+        this.totalContentSize = totalContentSize;
+    }
+
+    public boolean getHostFound() {
+        return hostFound;
+    }
+
+    public void setHostFound(boolean hostFound) {
+        this.hostFound = hostFound;
+    }
+
+    public String getCacheFilePath() {
+        return this.cacheFilPath;
+    }
+
+    public void setCacheFilPath(String cacheFilPath) {
+        this.cacheFilPath = cacheFilPath;
+    }
+
+    long getPendingContentSize() {
+
+        return (hostFound) ? (totalContentSize -downloadedContentSize) : 0;
     }
 }
