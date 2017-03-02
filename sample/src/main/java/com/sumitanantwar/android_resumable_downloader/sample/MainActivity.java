@@ -43,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
                 String[] files = {"it", "ja", "ko", "pl", "pt", "ru", "en"};
 
                 List<Downloadable> downloadables = new ArrayList<Downloadable>();
+                int tag = 0;
                 for (String fn : files) {
 
                     String url = baseUrl + fn + extn;
@@ -50,6 +51,9 @@ public class MainActivity extends AppCompatActivity {
 
                     Downloadable d = new Downloadable(url, destn);
                     downloadables.add(d);
+                    d.setTag(tag);
+
+                    tag++;
                 }
 
                 DownloadRequest request = new DownloadRequest(context);
@@ -57,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onComplete(Downloadable downloadable) {
 
-                        Log.i(LOG_TAG, "Downloaded : " + downloadable.getTargetUrl() + " - to : " + downloadable.getDestinationPath());
+                        Log.i(LOG_TAG, "Downloaded :  Tag - " + downloadable.getTag() + " - " + downloadable.getTargetUrl() + " - to : " + downloadable.getDestinationPath());
                     }
 
                     @Override

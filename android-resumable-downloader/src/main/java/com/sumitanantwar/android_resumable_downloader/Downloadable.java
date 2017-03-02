@@ -14,6 +14,7 @@ public class Downloadable {
 
     private final URL mTargetUrl;
     private final String mDestinationPath;
+    private Integer mTag = null;
 
     public Downloadable(String urlString, String destinationPath) {
 
@@ -34,6 +35,14 @@ public class Downloadable {
 
     public String getDestinationPath() {
         return mDestinationPath;
+    }
+
+    public void setTag(Integer tag) {
+        mTag = tag;
+    }
+
+    public Integer getTag() {
+        return mTag;
     }
 
     private static URL urlFromString(String urlString) {
