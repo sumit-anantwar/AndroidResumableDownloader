@@ -1,5 +1,12 @@
 apply plugin: 'com.jfrog.bintray'
 
+/**
+ * cmds to install and upload
+ * ./gradlew install
+ * ./gradlew bintrayUpload
+ *
+ */
+
 version = libraryVersion
 
 task sourcesJar(type: Jar) {

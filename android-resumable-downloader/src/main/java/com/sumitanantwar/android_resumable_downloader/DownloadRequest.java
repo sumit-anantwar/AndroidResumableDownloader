@@ -26,6 +26,7 @@ public class DownloadRequest
     private final Context mContext;
     private int retryCount = 7;
     private int timeBetweenRetries = 1000;
+    private boolean isDownloading = false;
 
     public DownloadRequest(Context context) {
         this.mContext = context;
@@ -56,6 +57,7 @@ public class DownloadRequest
 
     public void download(final List<Downloadable> downloadables, final DownloadCallback callback)
     {
+        isDownloading = true;
         SystemClock.sleep(timeBetweenRetries);
 
         // Create a new Retry Handler Async task
@@ -102,6 +104,7 @@ public class DownloadRequest
                                 processable.onDownloadComplete();
                             }
 
+                            isDownloading = false;
                             // Download Completed, trigger onDownloadComplete on the callback
                             callback.onDownloadComplete();
                             return; // Deliberate return, to avoid executing any other following code
@@ -145,6 +148,7 @@ public class DownloadRequest
                         // So, trigger onDownloadFailure
                         else
                         {
+                            isDownloading = false;
                             callback.onDownloadFailure(RetryMode.RetriesConsumed);
                         }
                     }
@@ -168,5 +172,8 @@ public class DownloadRequest
         }).execute();
 
     }
+
+    // Get state
+    public boolean isDownloading() { return isDownloading; }
 
 }

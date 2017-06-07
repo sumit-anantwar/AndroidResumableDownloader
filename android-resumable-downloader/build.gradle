@@ -43,7 +43,7 @@ ext {
     siteUrl = 'https://github.com/sumit-anantwar/AndroidResumableDownloader'
     gitUrl = 'https://github.com/sumit-anantwar/AndroidResumableDownloader.git'
 
-    libraryVersion = '0.0.3'
+    libraryVersion = '0.0.4'
 
     developerId = 'sumit-anantwar'
     developerName = 'Sumit Anantwar'
