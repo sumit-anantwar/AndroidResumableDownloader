@@ -50,6 +50,14 @@ public class MainActivity extends AppCompatActivity {
                     String destn = baseDestination + fn + extn;
 
                     Downloadable d = new Downloadable(url, destn);
+                    d.setOnDownloadListener(new Downloadable.OnDownloadListener()
+                    {
+                        @Override
+                        public void onDownloadComplete(Downloadable downloadable)
+                        {
+                            Log.i(LOG_TAG, "Downloaded :  Tag - " + downloadable.getTag() + " - " + downloadable.getTargetUrl() + " - to : " + downloadable.getDestinationPath());
+                        }
+                    });
                     downloadables.add(d);
                     d.setTag(tag);
 
@@ -58,11 +66,6 @@ public class MainActivity extends AppCompatActivity {
 
                 DownloadRequest request = new DownloadRequest(context);
                 request.download(downloadables, new DownloadCallback() {
-                    @Override
-                    public void onComplete(Downloadable downloadable) {
-
-                        Log.i(LOG_TAG, "Downloaded :  Tag - " + downloadable.getTag() + " - " + downloadable.getTargetUrl() + " - to : " + downloadable.getDestinationPath());
-                    }
 
                     @Override
                     public void onDownloadComplete() {

@@ -18,6 +18,7 @@ public class Processable extends Downloadable {
     public Processable(Downloadable downloadable)
     {
         this(downloadable.getTargetUrl(), downloadable.getDestinationPath());
+        this.setOnDownloadListener(downloadable.getOnDownloadListener());
         setTag(downloadable.getTag());
     }
 

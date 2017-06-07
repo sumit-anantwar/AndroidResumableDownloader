@@ -7,9 +7,7 @@ import java.util.List;
  */
 public interface DownloadCallback
 {
-    void onComplete(Downloadable downloadable);
     void onDownloadComplete();
     void onDownloadProgress(long completedBytes, long totalBytes);
     void onDownloadFailure(RetryMode retryMode);
-
 }

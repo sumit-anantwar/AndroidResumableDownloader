@@ -1,7 +1,5 @@
 package com.sumitanantwar.android_resumable_downloader;
 
-import android.support.annotation.NonNull;
-
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.InvalidParameterException;
@@ -15,6 +13,7 @@ public class Downloadable {
     private final URL mTargetUrl;
     private final String mDestinationPath;
     private Integer mTag = null;
+    private OnDownloadListener mDownloadListener;
 
     public Downloadable(String urlString, String destinationPath) {
 
@@ -29,21 +28,12 @@ public class Downloadable {
         mDestinationPath = destinationPath;
     }
 
-    public URL getTargetUrl() {
-        return mTargetUrl;
-    }
+    public URL getTargetUrl() { return mTargetUrl; }
 
-    public String getDestinationPath() {
-        return mDestinationPath;
-    }
+    public String getDestinationPath() { return mDestinationPath; }
 
-    public void setTag(Integer tag) {
-        mTag = tag;
-    }
-
-    public Integer getTag() {
-        return mTag;
-    }
+    public void setTag(Integer tag) { mTag = tag; }
+    public Integer getTag() { return mTag; }
 
     private static URL urlFromString(String urlString) {
 
@@ -57,5 +47,27 @@ public class Downloadable {
         }
 
         return null;
+    }
+
+    public void setOnDownloadListener(OnDownloadListener listener)
+    {
+        mDownloadListener = listener;
+    }
+    public OnDownloadListener getOnDownloadListener()
+    {
+        return mDownloadListener;
+    }
+
+    public void onDownloadComplete()
+    {
+        if (mDownloadListener != null) {
+            mDownloadListener.onDownloadComplete(this);
+        }
+    }
+
+    // OnDownloadListener
+    public interface OnDownloadListener
+    {
+        public void onDownloadComplete(Downloadable downloadable);
     }
 }

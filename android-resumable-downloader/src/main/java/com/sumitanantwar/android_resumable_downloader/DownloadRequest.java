@@ -99,8 +99,7 @@ public class DownloadRequest
                                 //Delete the cache file
                                 cacheFile.delete();
 
-
-                                callback.onComplete(processable);
+                                processable.onDownloadComplete();
                             }
 
                             // Download Completed, trigger onDownloadComplete on the callback
