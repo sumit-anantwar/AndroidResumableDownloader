@@ -8,5 +8,6 @@ import java.util.List;
 public interface RetryResponse
 {
     void needsRetry(List<Processable> processables);
-    void retryNotNeeded(RetryMode retryMode);
+//    void retryNotNeeded(RetryMode retryMode);
+    void retryNotNeeded(Throwable e);
 }

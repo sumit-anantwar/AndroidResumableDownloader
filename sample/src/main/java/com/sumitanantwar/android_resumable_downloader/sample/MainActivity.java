@@ -8,14 +8,16 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.sumitanantwar.android_resumable_downloader.DownloadCallback;
 import com.sumitanantwar.android_resumable_downloader.DownloadRequest;
+import com.sumitanantwar.android_resumable_downloader.DownloadRequestCallback;
+import com.sumitanantwar.android_resumable_downloader.DownloadRequestError;
 import com.sumitanantwar.android_resumable_downloader.Downloadable;
 import com.sumitanantwar.android_resumable_downloader.RetryMode;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.OnClick;
@@ -57,6 +59,12 @@ public class MainActivity extends AppCompatActivity {
                         {
                             Log.i(LOG_TAG, "Downloaded :  Tag - " + downloadable.getTag() + " - " + downloadable.getTargetUrl() + " - to : " + downloadable.getDestinationPath());
                         }
+
+                        @Override
+                        public void onDownloadFailure(int responseCode, Map<String, List<String>> headerMap)
+                        {
+                            Log.i(LOG_TAG, "Downloaded Failed :  Response Code - " + responseCode);
+                        }
                     });
                     downloadables.add(d);
                     d.setTag(tag);
@@ -64,31 +72,45 @@ public class MainActivity extends AppCompatActivity {
                     tag++;
                 }
 
+//                downloadables.clear();
+                Downloadable dldbl1 = new Downloadable("https://assets.popguide.me/uploads/home_location/image/3/mobile_Screenshot_from_2016-11-23_13-11-32.png", "/data/user/0/io.populi.pop_app_android/files/homeLocationImages/mobile_Screenshot_from_2016-11-23_13-11-32.png");
+                downloadables.add(dldbl1);
+                Downloadable dldbl2 = new Downloadable("https://assets.popguide.me/uploads/home_location/image/2/mobile_Rome.jpeg", "/data/user/0/io.populi.pop_app_android/files/homeLocationImages/mobile_Rome.jpeg");
+                downloadables.add(dldbl2);
+
                 DownloadRequest request = new DownloadRequest(context);
-                request.download(downloadables, new DownloadCallback() {
-
-                    @Override
-                    public void onDownloadComplete() {
-
-                        Toast.makeText(context, "Download Complete", Toast.LENGTH_LONG).show();
-                    }
-
-                    @Override
-                    public void onDownloadProgress(long completedBytes, long totalBytes) {
-
-                        Log.i(LOG_TAG, String.format("Download Progress : %s / %s", completedBytes, totalBytes));
-                    }
-
-                    @Override
-                    public void onDownloadFailure(RetryMode retryMode) {
-
-                        String msg = "Download Failed " + retryMode.name();
-                        Log.e(LOG_TAG, msg);
-                        Toast.makeText(context, msg, Toast.LENGTH_LONG).show();
-                    }
-                });
+                request.download(downloadables, callback);
             }
         });
     }
+
+    private DownloadRequestCallback callback = new DownloadRequestCallback()
+    {
+        @Override
+        public void onDownloadComplete() {
+
+            Toast.makeText(context, "Download Complete", Toast.LENGTH_LONG).show();
+        }
+
+        @Override
+        public void onDownloadIncomplete(List<Downloadable> incompleteDownloadables)
+        {
+            Toast.makeText(context, "Download Incomplete", Toast.LENGTH_LONG).show();
+        }
+
+        @Override
+        public void onDownloadProgress(long completedBytes, long totalBytes) {
+
+            Log.i(LOG_TAG, String.format("Download Progress : %s / %s", completedBytes, totalBytes));
+        }
+
+        @Override
+        public void onDownloadFailure(DownloadRequestError error) {
+
+            String msg = "Download Failed with Error : " + error.name();
+            Log.e(LOG_TAG, msg);
+            Toast.makeText(context, msg, Toast.LENGTH_LONG).show();
+        }
+    };
 
 }

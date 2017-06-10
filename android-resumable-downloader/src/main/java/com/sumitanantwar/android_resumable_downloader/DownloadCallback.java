@@ -5,7 +5,7 @@ import java.util.List;
 /**
  * Created by Sumit Anantwar on 7/13/16.
  */
-public interface DownloadCallback
+interface DownloadCallback
 {
     void onDownloadComplete();
     void onDownloadProgress(long completedBytes, long totalBytes);

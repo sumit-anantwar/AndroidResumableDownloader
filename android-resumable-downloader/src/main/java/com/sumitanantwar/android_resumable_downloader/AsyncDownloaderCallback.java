@@ -10,5 +10,5 @@ public interface AsyncDownloaderCallback {
 
     void onDownloadComplete(List<Processable> processables);
     void onDownloadProgress(long completedBytes, long totalBytes);
-    void onDownloadFailure(RetryMode retryMode);
+    void onDownloadFailure(Exception e);
 }

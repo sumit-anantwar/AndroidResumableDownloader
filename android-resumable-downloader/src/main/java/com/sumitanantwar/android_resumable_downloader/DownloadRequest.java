@@ -6,12 +6,16 @@ import android.util.Log;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Created by Sumit Anantwar on 7/13/16.
@@ -46,7 +50,7 @@ public class DownloadRequest
      * @param destinationPath
      * @param callback
      */
-    public void downloadURLtoFile(final String url, final String destinationPath, final DownloadCallback callback) {
+    public void downloadURLtoFile(final String url, final String destinationPath, final DownloadRequestCallback callback) {
 
         List<Downloadable> downloadables = new ArrayList<>();
         Downloadable downloadable = new Downloadable(url, destinationPath);
@@ -55,7 +59,12 @@ public class DownloadRequest
         download(downloadables, callback);
     }
 
-    public void download(final List<Downloadable> downloadables, final DownloadCallback callback)
+    /**
+     *
+     * @param downloadables List of  {@link Downloadable}
+     * @param callback {@link DownloadRequestCallback}
+     */
+    public void download(final List<Downloadable> downloadables, final DownloadRequestCallback callback)
     {
         isDownloading = true;
         SystemClock.sleep(timeBetweenRetries);
@@ -72,50 +81,66 @@ public class DownloadRequest
                     @Override
                     public void onDownloadComplete(List<Processable> processables)
                     {
-                        //Log.i(LOG_TAG, "Download Completed");
+                        List<Processable> incompleteProcessables = new ArrayList<>(processables.size());
+
+                        Log.i(LOG_TAG, "Download Completed");
 
                         // Copy the files from Cache to the final destination
                         try {
 
                             for (Processable processable : processables) {
-
-                                File cacheFile = new File(processable.getCacheFilePath());
-                                File destinationFile = new File(processable.getDestinationPath());
-
-                                if (!destinationFile.exists()) {
-                                    destinationFile.getParentFile().mkdirs();
-                                    destinationFile.createNewFile();
+                                if (processable.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                                    processable.onDownloadFailure(processable.getResponseCode(), processable.getHeaderMap());
+                                    incompleteProcessables.add(processable);
                                 }
+                                else {
 
-                                FileInputStream inStream = new FileInputStream(cacheFile);
-                                FileOutputStream outStream = new FileOutputStream(destinationFile);
+                                    File cacheFile = new File(processable.getCacheFilePath());
+                                    File destinationFile = new File(processable.getDestinationPath());
 
-                                byte[] buffer = new byte[1024];
-                                int read;
-                                while ((read = inStream.read(buffer)) != -1) {
-                                    outStream.write(buffer, 0, read);
+                                    if (!destinationFile.exists()) {
+                                        destinationFile.getParentFile().mkdirs();
+                                        destinationFile.createNewFile();
+                                    }
+
+                                    FileInputStream inStream = new FileInputStream(cacheFile);
+                                    FileOutputStream outStream = new FileOutputStream(destinationFile);
+
+                                    byte[] buffer = new byte[1024];
+                                    int read;
+                                    while ((read = inStream.read(buffer)) != -1) {
+                                        outStream.write(buffer, 0, read);
+                                    }
+                                    inStream.close();
+                                    outStream.close();
+
+                                    //Delete the cache file
+                                    cacheFile.delete();
+
+                                    processable.onDownloadComplete();
                                 }
-                                inStream.close();
-                                outStream.close();
+                            }
 
-                                //Delete the cache file
-                                cacheFile.delete();
-
-                                processable.onDownloadComplete();
+                            if (incompleteProcessables.size() > 0) {
+                                List<Downloadable> incompleteDownloadables = downloadableForProcessables(downloadables, incompleteProcessables);
+                                callback.onDownloadIncomplete(incompleteDownloadables);
+                            }
+                            else {
+                                // Download Completed, trigger onDownloadComplete on the callback
+                                callback.onDownloadComplete();
                             }
 
                             isDownloading = false;
-                            // Download Completed, trigger onDownloadComplete on the callback
-                            callback.onDownloadComplete();
-                            return; // Deliberate return, to avoid executing any other following code
+                            return; // Deliberate return, to avoid executing following code
                         }
                         catch (IOException e) {
 
+                            Log.e(LOG_TAG, "Failed to move cached downloads");
                             e.printStackTrace();
                         }
 
-                        // FIXME: Placeholder return, should return sensible info
-                        callback.onDownloadFailure(RetryMode.ConnectionError);
+                        // FIXME: Placeholder return, should return sensible data
+                        callback.onDownloadFailure(DownloadRequestError.InternalError);
                     }
 
                     @Override
@@ -126,48 +151,64 @@ public class DownloadRequest
                     }
 
                     @Override
-                    public void onDownloadFailure(RetryMode retryMode)
+                    public void onDownloadFailure(Exception e)
                     {
                         // Download has failed
                         //Log.i(LOG_TAG, "Download Failure With Retry Mode : " + retryMode.name());
-
-                        // Check the retryMode
-
-                        // If there was a ConnectionError or if the target URL returned 404, there is no point in Retrying
-                        if ((retryMode == RetryMode.ConnectionError) || (retryMode == RetryMode.HostNotFound))
+                        if (e instanceof UnknownHostException)
                         {
-                            callback.onDownloadFailure(retryMode);
+                            // UnknownHostException : When there is no Internet Connection or if the Host is not resolved
+                            callback.onDownloadFailure(DownloadRequestError.ConnectionError);
                         }
-                        // Else, Retry until all the retries are consumed
-                        else if (retryCount > 0)
-                        {
-                            retryCount--;
-                            download(downloadables, callback);
+                        else if (e instanceof FileNotFoundException) {
+                            // FileNotFoundException : When the host is resolved but the file is not found
+                            callback.onDownloadFailure(DownloadRequestError.TargetNotFoundError);
                         }
-                        // All the retries are consumed, and we have a Download Failure
-                        // So, trigger onDownloadFailure
-                        else
-                        {
-                            isDownloading = false;
-                            callback.onDownloadFailure(RetryMode.RetriesConsumed);
+                        else {
+                            if (retryCount > 0)
+                            {
+                                // Else, Retry until all the retries are consumed
+                                retryCount--;
+                                download(downloadables, callback);
+                            }
+                            else
+                            {
+                                // All the retries are consumed, and we have a Download Failure
+                                // So, trigger onDownloadFailure
+                                isDownloading = false;
+                                callback.onDownloadFailure(DownloadRequestError.RetriesConsumedError);
+                            }
                         }
                     }
                 }).execute();
             }
 
             @Override
-            public void retryNotNeeded(RetryMode retryMode)
+            public void retryNotNeeded(Throwable e)
             {
                 // Retry is not needed
                 //Log.i(LOG_TAG, "Retry Not Needed With Response Mode : " + retryMode.name());
 
                 // If the Download has been completed, call onDownloadComplete
-                if (retryMode == RetryMode.DownloadComplete)
+                if (e == null) {
                     callback.onDownloadComplete();
+                }
                 // Else, call onDownloadFailure with the retryMode, we will handle this in the calling method
-                else
-                    callback.onDownloadFailure(retryMode);
+                else {
+                    DownloadRequestError error = DownloadRequestError.InternalError;
 
+                    if (e instanceof UnknownHostException) {
+                        error = DownloadRequestError.ConnectionError;
+                    }
+                    else if (e instanceof FileNotFoundException) {
+                        error = DownloadRequestError.TargetNotFoundError;
+                    }
+                    else if (e instanceof OutOfMemoryError) {
+                        error = DownloadRequestError.OutOfMermoryError;
+                    }
+
+                    callback.onDownloadFailure(error);
+                }
             }
         }).execute();
 
@@ -176,4 +217,22 @@ public class DownloadRequest
     // Get state
     public boolean isDownloading() { return isDownloading; }
 
+
+    private List<Downloadable> downloadableForProcessables(List<Downloadable> downloadables, List<Processable> processables)
+    {
+        List<Downloadable> incompleteDownloadables = new ArrayList<>(processables.size());
+
+        for (Downloadable downloadable : downloadables) {
+            if (incompleteDownloadables.size() < processables.size()){
+                for (Processable processable : processables) {
+                    if ((downloadable.getTargetUrl().equals(processable.getTargetUrl())) && (downloadable.getDestinationPath().equals(processable.getDestinationPath()))) {
+                        incompleteDownloadables.add(downloadable);
+                        break;
+                    }
+                }
+            }
+        }
+
+        return incompleteDownloadables;
+    }
 }

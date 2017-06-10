@@ -1,5 +1,6 @@
 package com.sumitanantwar.android_resumable_downloader;
 
+import android.accounts.NetworkErrorException;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Environment;
@@ -14,6 +15,7 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Sumit Anantwar on 7/13/16.
@@ -52,21 +54,12 @@ public class RetryHandler extends AsyncTask<Void, Void, Boolean>
         }
         else if (error != null) {
             // if False and if an Exception was caught
-
-            if (error instanceof SocketTimeoutException) {
-                mRetryResponse.retryNotNeeded(RetryMode.HostNotFound);
-            }
-            else if (error instanceof OutOfMemoryError) {
-                mRetryResponse.retryNotNeeded(RetryMode.OutOfMemory);
-            }
-            else {
-                mRetryResponse.retryNotNeeded(RetryMode.ConnectionError);
-            }
+            mRetryResponse.retryNotNeeded(error);
         }
         else {
             // Execution reaches here if (targetLength == downloadedContentSize)
             // This means that no more data is available for download, Download has been completed
-            mRetryResponse.retryNotNeeded(RetryMode.DownloadComplete);
+            mRetryResponse.retryNotNeeded(null);
         }
     }
 
@@ -89,36 +82,30 @@ public class RetryHandler extends AsyncTask<Void, Void, Boolean>
 
                 // Open a new connection
                 HttpURLConnection connection = (HttpURLConnection) targetUrl.openConnection();
-
+                Map<String, List<String>> headers = connection.getHeaderFields();
                 // We only need to check the total size of the file to be downloaded.
                 // So, a HEAD request is enough.
                 // This saves bandwidth and is faster.
                 connection.setRequestMethod("HEAD");
                 connection.setConnectTimeout(7000);
 
-                // Open the cache file.
-                // If not found, a new file will be created.
-                File cacheFile = new File(cachePath);
-                if(!cacheFile.exists()) {
-                    cacheFile.getParentFile().mkdirs();
-                    cacheFile.createNewFile();
-                }
-
-                processable.setDownloadedContentSize(cacheFile.length());
-
                 // Get the Response Code from the connection
                 int responseCode = connection.getResponseCode();
+                processable.setResponseCode(responseCode);
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    // The connection is successful
 
-                if (responseCode == HttpURLConnection.HTTP_NOT_FOUND) // 404
-                {
-                    // 404 Not Found response, if the Host is resolved, but the target file is not found.
-                    // flag the Processable appropriately
-                    processable.setHostFound(false);
-                }
-                else if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) // 200
-                {
-                    // Host found
-                    processable.setHostFound(true);
+                    // Open the cache file.
+                    File cacheFile = new File(cachePath);
+                    if(!cacheFile.exists()) {
+                        // Create the parent folder(s) if necessary
+                        cacheFile.getParentFile().mkdirs();
+                        // Create the file
+                        cacheFile.createNewFile();
+                    }
+
+                    processable.setDownloadedContentSize(cacheFile.length());
+
                     // Get the Content Length
                     processable.setTotalContentSize(connection.getContentLength());
                 }
@@ -135,6 +122,11 @@ public class RetryHandler extends AsyncTask<Void, Void, Boolean>
 
             // return false with null error, If there is no pendingContent
             if (pendingContentSize <= 0) {
+
+                if (processables.size() > 0) {
+                    return true;
+                }
+
                 error = null;
                 return false;
             }
@@ -145,6 +137,7 @@ public class RetryHandler extends AsyncTask<Void, Void, Boolean>
 
             if (bytesAvailable < pendingContentSize)
             {
+                // Not enough memory to download the content
                 error = new OutOfMemoryError();
                 return false;
             }

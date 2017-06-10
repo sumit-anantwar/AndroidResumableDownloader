@@ -1,7 +1,10 @@
 package com.sumitanantwar.android_resumable_downloader;
 
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.MessageDigest;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Sumit Anantwar on 2/8/17.
@@ -12,60 +15,62 @@ public class Processable extends Downloadable {
     private String cacheFilPath;
     private long downloadedContentSize;
     private long totalContentSize;
-    private boolean hostFound;
+    private int responseCode;
+    private Map<String, List<String>> headerMap;
 
 
-    public Processable(Downloadable downloadable)
+    Processable(Downloadable downloadable)
     {
-        this(downloadable.getTargetUrl(), downloadable.getDestinationPath());
-        this.setOnDownloadListener(downloadable.getOnDownloadListener());
+        super(downloadable.getTargetUrl(), downloadable.getDestinationPath());
+        setOnDownloadListener(downloadable.getOnDownloadListener());
         setTag(downloadable.getTag());
     }
 
-    public Processable(String url, String destinationPath) {
-
-        super(url, destinationPath);
+    void setDownloadedContentSize(long downloadedContentSize) {
+        this.downloadedContentSize = downloadedContentSize;
     }
-
-    public Processable(URL url, String destinationPath) {
-
-        super(url, destinationPath);
-    }
-
-    public long getDownloadedContentSize() {
+    long getDownloadedContentSize() {
         return downloadedContentSize;
     }
 
-    public void setDownloadedContentSize(long downloadedContentSize) {
-        this.downloadedContentSize = downloadedContentSize;
-    }
-
-    public long getTotalContentSize() {
+    long getTotalContentSize() {
         return totalContentSize;
     }
 
-    public void setTotalContentSize(long totalContentSize) {
+    void setTotalContentSize(long totalContentSize) {
         this.totalContentSize = totalContentSize;
     }
 
-    public boolean getHostFound() {
-        return hostFound;
-    }
-
-    public void setHostFound(boolean hostFound) {
-        this.hostFound = hostFound;
-    }
-
-    public String getCacheFilePath() {
+    String getCacheFilePath() {
         return this.cacheFilPath;
     }
 
-    public void setCacheFilPath(String cacheFilPath) {
+    void setCacheFilPath(String cacheFilPath) {
         this.cacheFilPath = cacheFilPath;
     }
 
     long getPendingContentSize() {
 
-        return (hostFound) ? (totalContentSize -downloadedContentSize) : 0;
+        return (responseCode == HttpURLConnection.HTTP_OK) ? (totalContentSize -downloadedContentSize) : 0;
+    }
+
+    Map<String, List<String>> getHeaderMap()
+    {
+        return headerMap;
+    }
+
+    void setHeaderMap(Map<String, List<String>> headerMap)
+    {
+        this.headerMap = headerMap;
+    }
+
+    int getResponseCode()
+    {
+        return responseCode;
+    }
+
+    void setResponseCode(int responseCode)
+    {
+        this.responseCode = responseCode;
     }
 }

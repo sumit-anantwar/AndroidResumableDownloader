@@ -3,6 +3,8 @@ package com.sumitanantwar.android_resumable_downloader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.InvalidParameterException;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Sumit Anantwar on 2/6/17.
@@ -65,9 +67,17 @@ public class Downloadable {
         }
     }
 
+    public void onDownloadFailure(int responseCode, Map<String, List<String>> headerMap)
+    {
+        if (mDownloadListener != null) {
+            mDownloadListener.onDownloadFailure(responseCode, headerMap);
+        }
+    }
+
     // OnDownloadListener
     public interface OnDownloadListener
     {
-        public void onDownloadComplete(Downloadable downloadable);
+        void onDownloadComplete(Downloadable downloadable);
+        void onDownloadFailure(int responseCode, Map<String, List<String>> headerMap);
     }
 }
