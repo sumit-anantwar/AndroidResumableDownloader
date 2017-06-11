@@ -86,9 +86,9 @@ public class MainActivity extends AppCompatActivity {
     private DownloadRequestCallback callback = new DownloadRequestCallback()
     {
         @Override
-        public void onDownloadComplete(List<Downloadable> completedDownloadables, List<Downloadable> incompleteDownloadables) {
+        public void onDownloadComplete(List<Downloadable> completedDownloadables, List<Downloadable> failedDownloadables) {
 
-            Toast.makeText(context, "Download finished : Complete - " + completedDownloadables.size() + " -- Incomplete - " + incompleteDownloadables.size(), Toast.LENGTH_LONG).show();
+            Toast.makeText(context, "Download finished : Complete - " + completedDownloadables.size() + " -- Incomplete - " + failedDownloadables.size(), Toast.LENGTH_LONG).show();
         }
 
         @Override

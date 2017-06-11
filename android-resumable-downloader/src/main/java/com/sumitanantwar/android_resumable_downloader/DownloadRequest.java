@@ -79,7 +79,7 @@ public class DownloadRequest
                     @Override
                     public void onDownloadComplete(List<Processable> processables)
                     {
-                        List<Processable> incompleteProcessables = new ArrayList<>();
+                        List<Processable> failedProcessables = new ArrayList<>();
                         List<Processable> completeProcessables = new ArrayList<>();
 
                         Log.i(LOG_TAG, "Download Completed");
@@ -90,7 +90,7 @@ public class DownloadRequest
                             for (Processable processable : processables) {
                                 if (processable.getResponseCode() != HttpURLConnection.HTTP_OK) {
                                     processable.onDownloadFailure(processable.getResponseCode(), processable.getHeaders());
-                                    incompleteProcessables.add(processable);
+                                    failedProcessables.add(processable);
                                 }
                                 else {
 
@@ -122,8 +122,8 @@ public class DownloadRequest
                             }
 
                             List<Downloadable> completeDownloadables = downloadableForProcessables(downloadables, completeProcessables);
-                            List<Downloadable> incompleteDownloadables = downloadableForProcessables(downloadables, incompleteProcessables);
-                            callback.onDownloadComplete(completeDownloadables, incompleteDownloadables);
+                            List<Downloadable> failedDownloadables = downloadableForProcessables(downloadables, failedProcessables);
+                            callback.onDownloadComplete(completeDownloadables, failedDownloadables);
 
                             isDownloading = false;
                             return; // Deliberate return, to avoid executing following code
