@@ -8,8 +8,7 @@ import java.util.List;
 
 public interface DownloadRequestCallback
 {
-    void onDownloadComplete();
+    void onDownloadComplete(List<Downloadable> completedDownloadables, List<Downloadable> incompleteDownloadables);
     void onDownloadProgress(long completedBytes, long totalBytes);
-    void onDownloadIncomplete(List<Downloadable> incompleteDownloadables);
     void onDownloadFailure(DownloadRequestError error);
 }

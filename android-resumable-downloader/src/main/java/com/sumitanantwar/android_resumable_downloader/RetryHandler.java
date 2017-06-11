@@ -1,6 +1,5 @@
 package com.sumitanantwar.android_resumable_downloader;
 
-import android.accounts.NetworkErrorException;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Environment;
@@ -10,10 +9,9 @@ import android.util.Log;
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.SocketTimeoutException;
 import java.net.URL;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -29,7 +27,7 @@ public class RetryHandler extends AsyncTask<Void, Void, Boolean>
     private final List<Downloadable> mDownloadables;
     private final RetryResponse mRetryResponse;
 
-    private final List<Processable> processables;
+    private final Map<Downloadable, Processable> processableMap;
     private Throwable error;
 
     public RetryHandler(Context context, List<Downloadable> downloadables, RetryResponse retryResponse)
@@ -38,7 +36,7 @@ public class RetryHandler extends AsyncTask<Void, Void, Boolean>
         this.mDownloadables = downloadables;
         this.mRetryResponse = retryResponse;
 
-        this.processables = new ArrayList<>(downloadables.size());
+        this.processableMap = new HashMap<>(downloadables.size());
     }
 
     @Override
@@ -50,7 +48,7 @@ public class RetryHandler extends AsyncTask<Void, Void, Boolean>
         // if True, we should retry downloading
         if (shouldRetry) {
 
-            mRetryResponse.needsRetry(processables);
+            mRetryResponse.needsRetry(processableMap);
         }
         else if (error != null) {
             // if False and if an Exception was caught
@@ -92,6 +90,7 @@ public class RetryHandler extends AsyncTask<Void, Void, Boolean>
                 // Get the Response Code from the connection
                 int responseCode = connection.getResponseCode();
                 processable.setResponseCode(responseCode);
+                processable.setHeaders(headers);
                 if (responseCode == HttpURLConnection.HTTP_OK) {
                     // The connection is successful
 
@@ -114,21 +113,10 @@ public class RetryHandler extends AsyncTask<Void, Void, Boolean>
                 connection.disconnect();
 
                 // Add the processable to the ArrayList
-                processables.add(processable);
+                processableMap.put(downloadable, processable);
 
                 // Calculate the Total Pending Content Size
                 pendingContentSize += processable.getPendingContentSize();
-            }
-
-            // return false with null error, If there is no pendingContent
-            if (pendingContentSize <= 0) {
-
-                if (processables.size() > 0) {
-                    return true;
-                }
-
-                error = null;
-                return false;
             }
 
             // Check if we have enough space available in the Internal Memory

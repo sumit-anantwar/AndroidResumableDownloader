@@ -10,12 +10,10 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
+import java.util.Map;
 
 /**
  * Created by Sumit Anantwar on 7/13/16.
@@ -73,15 +71,16 @@ public class DownloadRequest
         new RetryHandler(mContext, downloadables, new RetryResponse()
         {
             @Override
-            public void needsRetry(List<Processable> processables)
+            public void needsRetry(Map<Downloadable, Processable> processableMap)
             {
                 // Needs Retry, so create a new AsyncDownloader task
-                new AsyncDownloader(processables, new AsyncDownloaderCallback()
+                new AsyncDownloader(processableMap, new AsyncDownloaderCallback()
                 {
                     @Override
                     public void onDownloadComplete(List<Processable> processables)
                     {
-                        List<Processable> incompleteProcessables = new ArrayList<>(processables.size());
+                        List<Processable> incompleteProcessables = new ArrayList<>();
+                        List<Processable> completeProcessables = new ArrayList<>();
 
                         Log.i(LOG_TAG, "Download Completed");
 
@@ -90,7 +89,7 @@ public class DownloadRequest
 
                             for (Processable processable : processables) {
                                 if (processable.getResponseCode() != HttpURLConnection.HTTP_OK) {
-                                    processable.onDownloadFailure(processable.getResponseCode(), processable.getHeaderMap());
+                                    processable.onDownloadFailure(processable.getResponseCode(), processable.getHeaders());
                                     incompleteProcessables.add(processable);
                                 }
                                 else {
@@ -117,18 +116,14 @@ public class DownloadRequest
                                     //Delete the cache file
                                     cacheFile.delete();
 
+                                    completeProcessables.add(processable);
                                     processable.onDownloadComplete();
                                 }
                             }
 
-                            if (incompleteProcessables.size() > 0) {
-                                List<Downloadable> incompleteDownloadables = downloadableForProcessables(downloadables, incompleteProcessables);
-                                callback.onDownloadIncomplete(incompleteDownloadables);
-                            }
-                            else {
-                                // Download Completed, trigger onDownloadComplete on the callback
-                                callback.onDownloadComplete();
-                            }
+                            List<Downloadable> completeDownloadables = downloadableForProcessables(downloadables, completeProcessables);
+                            List<Downloadable> incompleteDownloadables = downloadableForProcessables(downloadables, incompleteProcessables);
+                            callback.onDownloadComplete(completeDownloadables, incompleteDownloadables);
 
                             isDownloading = false;
                             return; // Deliberate return, to avoid executing following code
@@ -154,7 +149,6 @@ public class DownloadRequest
                     public void onDownloadFailure(Exception e)
                     {
                         // Download has failed
-                        //Log.i(LOG_TAG, "Download Failure With Retry Mode : " + retryMode.name());
                         if (e instanceof UnknownHostException)
                         {
                             // UnknownHostException : When there is no Internet Connection or if the Host is not resolved
@@ -187,28 +181,24 @@ public class DownloadRequest
             public void retryNotNeeded(Throwable e)
             {
                 // Retry is not needed
-                //Log.i(LOG_TAG, "Retry Not Needed With Response Mode : " + retryMode.name());
+                // call onDownloadFailure with the human understandable Error
 
-                // If the Download has been completed, call onDownloadComplete
-                if (e == null) {
-                    callback.onDownloadComplete();
+                DownloadRequestError error = DownloadRequestError.InternalError;
+
+                if (e instanceof UnknownHostException) {
+                    error = DownloadRequestError.ConnectionError;
                 }
-                // Else, call onDownloadFailure with the retryMode, we will handle this in the calling method
-                else {
-                    DownloadRequestError error = DownloadRequestError.InternalError;
-
-                    if (e instanceof UnknownHostException) {
-                        error = DownloadRequestError.ConnectionError;
-                    }
-                    else if (e instanceof FileNotFoundException) {
-                        error = DownloadRequestError.TargetNotFoundError;
-                    }
-                    else if (e instanceof OutOfMemoryError) {
-                        error = DownloadRequestError.OutOfMermoryError;
-                    }
-
-                    callback.onDownloadFailure(error);
+                else if (e instanceof FileNotFoundException) {
+                    error = DownloadRequestError.TargetNotFoundError;
                 }
+                else if (e instanceof OutOfMemoryError) {
+                    error = DownloadRequestError.OutOfMermoryError;
+                }
+
+                Log.i(LOG_TAG, "Retry Not Needed With Response Mode : " + error.name());
+
+                callback.onDownloadFailure(error);
+
             }
         }).execute();
 

@@ -12,7 +12,6 @@ import com.sumitanantwar.android_resumable_downloader.DownloadRequest;
 import com.sumitanantwar.android_resumable_downloader.DownloadRequestCallback;
 import com.sumitanantwar.android_resumable_downloader.DownloadRequestError;
 import com.sumitanantwar.android_resumable_downloader.Downloadable;
-import com.sumitanantwar.android_resumable_downloader.RetryMode;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -87,15 +86,9 @@ public class MainActivity extends AppCompatActivity {
     private DownloadRequestCallback callback = new DownloadRequestCallback()
     {
         @Override
-        public void onDownloadComplete() {
+        public void onDownloadComplete(List<Downloadable> completedDownloadables, List<Downloadable> incompleteDownloadables) {
 
-            Toast.makeText(context, "Download Complete", Toast.LENGTH_LONG).show();
-        }
-
-        @Override
-        public void onDownloadIncomplete(List<Downloadable> incompleteDownloadables)
-        {
-            Toast.makeText(context, "Download Incomplete", Toast.LENGTH_LONG).show();
+            Toast.makeText(context, "Download finished : Complete - " + completedDownloadables.size() + " -- Incomplete - " + incompleteDownloadables.size(), Toast.LENGTH_LONG).show();
         }
 
         @Override

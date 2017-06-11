@@ -15,15 +15,13 @@ public class Processable extends Downloadable {
     private String cacheFilPath;
     private long downloadedContentSize;
     private long totalContentSize;
-    private int responseCode;
-    private Map<String, List<String>> headerMap;
-
 
     Processable(Downloadable downloadable)
     {
         super(downloadable.getTargetUrl(), downloadable.getDestinationPath());
         setOnDownloadListener(downloadable.getOnDownloadListener());
         setTag(downloadable.getTag());
+        setResponseCode(downloadable.getResponseCode());
     }
 
     void setDownloadedContentSize(long downloadedContentSize) {
@@ -51,26 +49,6 @@ public class Processable extends Downloadable {
 
     long getPendingContentSize() {
 
-        return (responseCode == HttpURLConnection.HTTP_OK) ? (totalContentSize -downloadedContentSize) : 0;
-    }
-
-    Map<String, List<String>> getHeaderMap()
-    {
-        return headerMap;
-    }
-
-    void setHeaderMap(Map<String, List<String>> headerMap)
-    {
-        this.headerMap = headerMap;
-    }
-
-    int getResponseCode()
-    {
-        return responseCode;
-    }
-
-    void setResponseCode(int responseCode)
-    {
-        this.responseCode = responseCode;
+        return (getResponseCode() == HttpURLConnection.HTTP_OK) ? (totalContentSize -downloadedContentSize) : 0;
     }
 }

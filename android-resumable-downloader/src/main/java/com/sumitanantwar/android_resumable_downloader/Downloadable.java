@@ -16,6 +16,8 @@ public class Downloadable {
     private final String mDestinationPath;
     private Integer mTag = null;
     private OnDownloadListener mDownloadListener;
+    private int responseCode;
+    private Map<String, List<String>> headerMap;
 
     public Downloadable(String urlString, String destinationPath) {
 
@@ -79,5 +81,25 @@ public class Downloadable {
     {
         void onDownloadComplete(Downloadable downloadable);
         void onDownloadFailure(int responseCode, Map<String, List<String>> headerMap);
+    }
+
+    Map<String, List<String>> getHeaders()
+    {
+        return headerMap;
+    }
+
+    void setHeaders(Map<String, List<String>> headerMap)
+    {
+        this.headerMap = headerMap;
+    }
+
+    int getResponseCode()
+    {
+        return responseCode;
+    }
+
+    void setResponseCode(int responseCode)
+    {
+        this.responseCode = responseCode;
     }
 }

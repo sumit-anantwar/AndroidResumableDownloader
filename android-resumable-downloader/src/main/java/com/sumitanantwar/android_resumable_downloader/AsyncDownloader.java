@@ -12,7 +12,9 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Sumit Anantwar on 7/11/16.
@@ -33,9 +35,9 @@ class AsyncDownloader extends AsyncTask<Void, Integer, Exception>
 
      * @param callback : (DownloadCallback)
      */
-    AsyncDownloader(List<Processable> processables, AsyncDownloaderCallback callback)
+    AsyncDownloader(Map<Downloadable, Processable> processableMap, AsyncDownloaderCallback callback)
     {
-        this.mProcessables = processables;
+        this.mProcessables = new ArrayList<>(processableMap.values());
         this.mCallback = callback;
     }
 
