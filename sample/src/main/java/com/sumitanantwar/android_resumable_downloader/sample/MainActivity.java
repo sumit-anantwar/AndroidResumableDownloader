@@ -60,9 +60,9 @@ public class MainActivity extends AppCompatActivity {
                         }
 
                         @Override
-                        public void onDownloadFailure(int responseCode, Map<String, List<String>> headerMap)
+                        public void onDownloadFailure(Downloadable downloadable, int responseCode, Map<String, List<String>> headerMap)
                         {
-                            Log.i(LOG_TAG, "Downloaded Failed :  Response Code - " + responseCode);
+                            Log.i(LOG_TAG, "Downloaded Failed : " + downloadable.getTargetUrl() + " -- Response Code - " + responseCode);
                         }
                     });
                     downloadables.add(d);

@@ -72,15 +72,8 @@ public class Downloadable {
     public void onDownloadFailure(int responseCode, Map<String, List<String>> headerMap)
     {
         if (mDownloadListener != null) {
-            mDownloadListener.onDownloadFailure(responseCode, headerMap);
+            mDownloadListener.onDownloadFailure(this, responseCode, headerMap);
         }
-    }
-
-    // OnDownloadListener
-    public interface OnDownloadListener
-    {
-        void onDownloadComplete(Downloadable downloadable);
-        void onDownloadFailure(int responseCode, Map<String, List<String>> headerMap);
     }
 
     public Map<String, List<String>> getHeaders()
@@ -101,5 +94,12 @@ public class Downloadable {
     void setResponseCode(int responseCode)
     {
         this.responseCode = responseCode;
+    }
+
+    // OnDownloadListener
+    public interface OnDownloadListener
+    {
+        void onDownloadComplete(Downloadable downloadable);
+        void onDownloadFailure(Downloadable downloadable, int responseCode, Map<String, List<String>> headerMap);
     }
 }
