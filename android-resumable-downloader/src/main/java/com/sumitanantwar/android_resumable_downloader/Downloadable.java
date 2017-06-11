@@ -83,7 +83,7 @@ public class Downloadable {
         void onDownloadFailure(int responseCode, Map<String, List<String>> headerMap);
     }
 
-    Map<String, List<String>> getHeaders()
+    public Map<String, List<String>> getHeaders()
     {
         return headerMap;
     }
@@ -93,7 +93,7 @@ public class Downloadable {
         this.headerMap = headerMap;
     }
 
-    int getResponseCode()
+    public int getResponseCode()
     {
         return responseCode;
     }

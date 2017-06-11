@@ -210,19 +210,21 @@ public class DownloadRequest
 
     private List<Downloadable> downloadableForProcessables(List<Downloadable> downloadables, List<Processable> processables)
     {
-        List<Downloadable> incompleteDownloadables = new ArrayList<>(processables.size());
+        List<Downloadable> dnldbls = new ArrayList<>(processables.size());
 
         for (Downloadable downloadable : downloadables) {
-            if (incompleteDownloadables.size() < processables.size()){
+            if (dnldbls.size() < processables.size()){
                 for (Processable processable : processables) {
                     if ((downloadable.getTargetUrl().equals(processable.getTargetUrl())) && (downloadable.getDestinationPath().equals(processable.getDestinationPath()))) {
-                        incompleteDownloadables.add(downloadable);
+                        downloadable.setResponseCode(processable.getResponseCode());
+                        downloadable.setHeaders(processable.getHeaders());
+                        dnldbls.add(downloadable);
                         break;
                     }
                 }
             }
         }
 
-        return incompleteDownloadables;
+        return dnldbls;
     }
 }
